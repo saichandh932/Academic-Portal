@@ -138,48 +138,50 @@ export default function AttendanceUpload({ subject, onUploadSuccess }) {
 
   return (
     <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 className="font-bold text-xl">Attendance Registry: {subject}</h2>
-          <div className="flex items-center gap-2 mt-1">
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>
                 {isLocked ? (lockedBy ? `Finalized by ${lockedBy}. Records are immutable.` : "Records for this slot are finalized.") : "Tick the checkbox to mark a student as Absent."}
               </p>
              {isLocked ? (
                 <span className="badge" style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '900', borderRadius: '30px' }}>
-                   🔒 PERMANENTLY FINALIZED
+                   🔒 <span className="hide-on-mobile">PERMANENTLY</span> FINALIZED
                 </span>
              ) : isVerified ? (
                 <span className="badge badge-success" style={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                   <CheckCircle size={10} /> VERIFIED RECORDS FOUND
+                   <CheckCircle size={10} /> VERIFIED
                 </span>
              ) : (
                 <span className="badge" style={{ background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', fontSize: '0.65rem' }}>
-                   NEW ENTRY SHEET
+                   NEW ENTRY
                 </span>
              )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
                 <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>PERIOD:</span>
                 <select 
                     className="form-input"
-                    style={{ width: '100px', height: '38px', fontSize: '0.9rem' }}
+                    style={{ width: '80px', height: '38px', fontSize: '0.9rem' }}
                     value={period}
                     onChange={(e) => setPeriod(parseInt(e.target.value))}
                 >
                     {[1,2,3,4,5,6,7,8].map(p => <option key={p} value={p}>P{p}</option>)}
                 </select>
             </div>
-            <Calendar size={18} color="var(--primary)" />
-            <input 
-              type="date" 
-              className="form-input" 
-              style={{ width: '160px', height: '38px', fontSize: '0.9rem' }}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+                <Calendar size={18} color="var(--primary)" />
+                <input 
+                  type="date" 
+                  className="form-input" 
+                  style={{ width: '150px', height: '38px', fontSize: '0.9rem' }}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+            </div>
         </div>
       </div>
 
@@ -224,7 +226,7 @@ export default function AttendanceUpload({ subject, onUploadSuccess }) {
                 </div>
             </div>
          ) : (
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(200px, 100%, 300px), 1fr))', gap: '1rem' }}>
                {students.map((student) => {
                   const isAbsent = absentIds.has(student.registration_number);
                   return (
@@ -279,13 +281,13 @@ export default function AttendanceUpload({ subject, onUploadSuccess }) {
          )}
       </div>
 
-      <div className="flex justify-between items-center mt-6" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+      <div className="flex justify-between items-center mt-6 gap-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', flexWrap: 'wrap' }}>
         <div>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-              Recording <b>{absentIds.size} absences</b> out of {students.length} students for {date}.
+              Recording <b>{absentIds.size} absences</b> out of {students.length} students.
             </p>
             {!isLocked && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.75rem', fontWeight: '800', marginTop: '0.4rem' }}>
+                <p className="hide-on-mobile" style={{ color: 'var(--danger)', fontSize: '0.75rem', fontWeight: '800', marginTop: '0.4rem' }}>
                    ⚠️ NOTE: Saving will permanently lock this record.
                 </p>
             )}
@@ -296,7 +298,7 @@ export default function AttendanceUpload({ subject, onUploadSuccess }) {
               className="btn btn-primary" 
               disabled={loading}
               onClick={handleSubmit}
-              style={{ gap: '0.5rem' }}
+              style={{ gap: '0.5rem', width: 'auto', minWidth: '180px' }}
             >
               {loading ? "Finalizing..." : (
                 <>

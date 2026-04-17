@@ -113,10 +113,10 @@ export default function Login() {
     <div style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* 1. Official Header Navbar */}
-      <header className="vignan-nav" style={{ justifyContent: 'center', padding: '1rem', height: 'auto' }}>
+      <header className="vignan-nav">
         <div>
           {/* Logo pulled directly from your public folder, enlarged for visibility */}
-          <img src="/vignan_logo.png" alt="Vignan's Foundation for Science, Technology & Research" style={{ height: '90px' }} />
+          <img src="/vignan_logo.png" alt="Vignan's Foundation for Science, Technology & Research" className="vignan-logo-img" />
         </div>
       </header>
 

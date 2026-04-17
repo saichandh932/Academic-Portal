@@ -49,12 +49,12 @@ export default function StudentDashboard() {
 
   return (
     <div className="container animate-fade-in" style={{ paddingBottom: '4rem' }}>
-      <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="font-bold text-xl" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+          <h1 className="font-bold text-xl" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '0.5rem' }}>
             Performance Panel
           </h1>
-          <p style={{ color: 'var(--text-muted)' }}>Registration Number: <b style={{ fontFamily: 'monospace', background: 'rgba(0,33,71,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px', color: 'var(--vignan-blue)' }}>{id}</b></p>
+          <p style={{ color: 'var(--text-muted)' }}>Reg No: <b style={{ fontFamily: 'monospace', background: 'rgba(0,33,71,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px', color: 'var(--vignan-blue)' }}>{id}</b></p>
         </div>
         <button 
           className="btn btn-outline" 
@@ -64,7 +64,7 @@ export default function StudentDashboard() {
           }} 
           style={{ borderColor: 'var(--danger)', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <LogOut size={16} /> Logout
+          <LogOut size={16} /> <span className="hide-on-mobile">Logout</span>
         </button>
       </div>
 
@@ -72,12 +72,12 @@ export default function StudentDashboard() {
         
         {/* Student Profile Card */}
         {studentProfile && (
-          <div className="glass-panel" style={{ background: 'var(--surface-solid)', padding: '2rem', marginBottom: '1rem', display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="glass-panel" style={{ background: 'var(--surface-solid)', padding: 'clamp(1rem, 3vw, 2rem)', marginBottom: '1rem', display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
             
             {/* Profile Photo Section */}
             <div style={{ 
-              width: '180px', 
-              height: '180px', 
+              width: 'clamp(140px, 30vw, 180px)', 
+              height: 'clamp(140px, 30vw, 180px)', 
               borderRadius: '50%', 
               background: 'linear-gradient(135deg, var(--bg-color) 0%, #e2e8f0 100%)',
               border: '4px solid white',
@@ -98,11 +98,11 @@ export default function StudentDashboard() {
                 />
               ) : null}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                <User size={80} color="var(--text-muted)" style={{ opacity: 0.4 }} />
+                <User size={60} color="var(--text-muted)" style={{ opacity: 0.4 }} />
               </div>
             </div>
 
-            <div style={{ flex: 1, minWidth: '300px' }}>
+            <div style={{ flex: 1, minWidth: 'min(100%, 300px)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
                 <Activity color="var(--primary)" size={20} />
                 <h2 className="font-bold" style={{ margin: 0, fontSize: '1.4rem' }}>Institutional Identity</h2>
@@ -122,12 +122,8 @@ export default function StudentDashboard() {
                   <div style={{ fontSize: '1rem', fontWeight: '600' }}>Year {studentProfile.year} (Sem {studentProfile.semester}) - Section {studentProfile.section}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gender</div>
-                  <div style={{ fontSize: '1rem', fontWeight: '600' }}>{studentProfile.gender || 'N/A'}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date of Birth</div>
-                  <div style={{ fontSize: '1rem', fontWeight: '600' }}>{studentProfile.dob ? new Date(studentProfile.dob).toLocaleDateString() : 'N/A'}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gender / DOB</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '600' }}>{studentProfile.gender || 'N/A'} | {studentProfile.dob ? new Date(studentProfile.dob).toLocaleDateString() : 'N/A'}</div>
                 </div>
               </div>
             </div>
@@ -221,8 +217,8 @@ export default function StudentDashboard() {
             <h2 className="font-bold" style={{ margin: 0 }}>Academic Gradebook</h2>
           </div>
           
-          <div style={{ overflowX: 'auto' }}>
-            <table className="w-full" style={{ borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-container">
+            <table className="w-full" style={{ borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-muted)' }}>
                 <tr>
                   <th style={{ padding: '1rem', fontSize: '0.85rem' }}>Subject</th>

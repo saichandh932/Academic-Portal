@@ -148,7 +148,7 @@ export default function ManualUpload({ subject, onUploadSuccess }) {
 
   return (
     <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem', border: isLocked ? '2px solid var(--border-color)' : 'none' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 className="font-bold text-xl">Marks Entry: {subject}</h2>
           <p style={{ color: 'var(--text-muted)' }}>Enter grades or view existing records for this subject.</p>
@@ -163,7 +163,7 @@ export default function ManualUpload({ subject, onUploadSuccess }) {
       {error && <div style={{ color: 'var(--danger)', padding: '1rem', background: 'rgba(227, 30, 36, 0.05)', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid rgba(227, 30, 36, 0.1)' }}>{error}</div>}
       {message && <div style={{ color: isLocked ? 'var(--text-muted)' : 'var(--vignan-blue)', padding: '1rem', background: isLocked ? 'rgba(0,0,0,0.03)' : 'rgba(0, 96, 156, 0.05)', borderRadius: '0.5rem', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: '600', border: isLocked ? 'none' : '1px solid rgba(0, 96, 156, 0.1)' }}>{message}</div>}
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', background: 'rgba(0,0,0,0.03)', padding: '1.5rem', borderRadius: '1rem', alignItems: 'flex-end' }}>
+      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', background: 'rgba(0,0,0,0.03)', padding: 'clamp(1rem, 3vw, 1.5rem)', borderRadius: '1rem', alignItems: 'flex-end' }}>
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label className="form-label">Subject</label>
           <input className="form-input" value={subject} readOnly disabled style={{ opacity: 0.7 }} />
@@ -182,7 +182,7 @@ export default function ManualUpload({ subject, onUploadSuccess }) {
           </select>
         </div>
 
-        <button className="btn btn-outline" onClick={handleLoadGrid} disabled={loading} style={{ height: '42px' }}>
+        <button className="btn btn-outline" onClick={handleLoadGrid} disabled={loading} style={{ height: '42px', width: '100%' }}>
           {loading ? "Checking..." : "Load Assessment Grid"}
         </button>
       </div>
@@ -209,12 +209,12 @@ export default function ManualUpload({ subject, onUploadSuccess }) {
             ))}
           </div>
 
-          <div className="flex justify-between items-center mt-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <div className="flex justify-between items-center mt-4 gap-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', flexWrap: 'wrap' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
               {isLocked ? "This record is finalized and cannot be edited." : `Recording grades for ${students.length} students in ${subject}.`}
             </p>
             {!isLocked && (
-              <button type="submit" className="btn btn-primary" disabled={loading}>
+              <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: 'auto', minWidth: '200px' }}>
                 {loading ? "Saving..." : "Save All to Gradebook"}
               </button>
             )}

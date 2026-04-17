@@ -6,6 +6,7 @@ MongoDB connection layer using PyMongo.
 Provides get_db() to access the database and a DB() context manager
 for backward compatibility with existing code patterns.
 """
+import os
 from pymongo import MongoClient
 from backend.config import Config
 
@@ -16,25 +17,42 @@ _db = None
 def init_db() -> None:
     """
     Create the MongoDB connection.
-    Called once from create_app() before the first request.
+    Called once from create_app() before the first request or lazily if needed.
     """
     global _client, _db
+    if _db is not None:
+        return
+
     try:
-        _client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
-        _db = _client[Config.DB_NAME]
+        uri = Config.MONGO_URI
+        db_name = Config.DB_NAME
+        
+        # Check for placeholder or dangerous defaults in Vercel
+        if "localhost" in uri and os.getenv("VERCEL") == "1":
+            print("[DB] WARNING: MONGO_URI is set to localhost in Vercel environment.")
+
+        _client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+        _db = _client[db_name]
+        
         # Force a connection test
         _client.admin.command('ping')
-        print(f"[DB] MongoDB connected -> {Config.DB_NAME}")
+        print(f"[DB] MongoDB connected -> {db_name}")
     except Exception as err:
-        print(f"[DB] ERROR: Could not connect to MongoDB. {err}")
+        print(f"[DB] ERROR: Could not connect to MongoDB cluster. Check MONGO_URI. Details: {err}")
         _client = None
         _db = None
 
 
 def get_db():
-    """Return the pymongo Database object."""
+    """Return the pymongo Database object, initializing if necessary."""
+    global _db
     if _db is None:
-        raise RuntimeError("MongoDB not initialised. Call init_db() first.")
+        init_db()
+    if _db is None:
+        raise RuntimeError(
+            "MongoDB not initialised. Ensure 'MONGO_URI' is set in your environment variables. "
+            "If on Vercel, check the Dashboard Settings."
+        )
     return _db
 
 

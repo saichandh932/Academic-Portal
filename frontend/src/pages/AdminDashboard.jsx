@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Users, RefreshCcw, LayoutDashboard, ClipboardCheck, LogOut, Activity, AlertTriangle, Search, ChevronDown, ChevronRight, Lock, Mail, ShieldCheck, ClipboardList } from 'lucide-react';
+import { Users, RefreshCcw, LayoutDashboard, ClipboardCheck, LogOut, Activity, AlertTriangle, Search, ChevronDown, ChevronRight, Lock, Mail, ShieldCheck, ClipboardList, Menu, X } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import ManualUpload from './ManualUpload';
 import AttendanceUpload from './AttendanceUpload';
@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [isAlertDetailsOpen, setIsAlertDetailsOpen] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('marks'); // 'marks' | 'add-marks' | 'attendance' | 'settings'
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [compactMode] = useState(() => localStorage.getItem('vignan_compact_mode') === 'true');
 
@@ -120,22 +121,26 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-color)' }}>
+      {/* Sidebar Overlay (Mobile) */}
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} 
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
       {/* Sidebar Navigation */}
-      <aside style={{
-        width: '280px',
-        background: 'var(--vignan-navy)',
-        color: 'white',
-        padding: '2rem 1.5rem',
-        position: 'fixed',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 100,
-        boxShadow: '4px 0 10px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px', color: 'white', margin: 0 }}>VIGNAN ACADEMIC PORTAL</h2>
-          <p style={{ fontSize: '0.75rem', opacity: 0.5, textTransform: 'uppercase', marginTop: '0.4rem' }}>Management Console</p>
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px', color: 'white', margin: 0 }}>VIGNAN ACADEMIC PORTAL</h2>
+            <p style={{ fontSize: '0.75rem', opacity: 0.5, textTransform: 'uppercase', marginTop: '0.4rem' }}>Management Console</p>
+          </div>
+          <button 
+            className="show-on-mobile" 
+            style={{ background: 'none', border: 'none', color: 'white' }}
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={24} />
+          </button>
         </div>
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -148,7 +153,7 @@ export default function AdminDashboard() {
               background: activeTab === 'marks' ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
               padding: '0.8rem 1.2rem'
             }}
-            onClick={() => setActiveTab('marks')}
+            onClick={() => { setActiveTab('marks'); setIsSidebarOpen(false); }}
           >
             <LayoutDashboard size={18} style={{ marginRight: '0.8rem' }} /> Section Overview
           </button>
@@ -162,7 +167,7 @@ export default function AdminDashboard() {
               background: activeTab === 'add-marks' ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
               padding: '0.8rem 1.2rem'
             }}
-            onClick={() => setActiveTab('add-marks')}
+            onClick={() => { setActiveTab('add-marks'); setIsSidebarOpen(false); }}
           >
             <RefreshCcw size={18} style={{ marginRight: '0.8rem' }} /> Post New Marks
           </button>
@@ -176,7 +181,7 @@ export default function AdminDashboard() {
               background: activeTab === 'attendance' ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
               padding: '0.8rem 1.2rem'
             }}
-            onClick={() => setActiveTab('attendance')}
+            onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }}
           >
             <ClipboardCheck size={18} style={{ marginRight: '0.8rem' }} /> Attendance Registry
           </button>
@@ -198,17 +203,26 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content Area */}
-      <main style={{ marginLeft: '280px', flex: 1, padding: '2rem 3rem' }}>
-        <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
-          <div>
-            <h1 className="font-bold text-xl" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{subject}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>
-              {activeTab === 'marks' ? 'CLASS PERFORMANCE OVERVIEW' :
-                activeTab === 'add-marks' ? 'ENTER STUDENT SCORES' : 'MANAGE DAILY ATTENDANCE'}
-            </p>
+      <main className="main-content">
+        <div className="flex justify-between items-center" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              className="show-on-mobile btn btn-outline" 
+              style={{ padding: '0.5rem', borderColor: 'var(--border-color)' }}
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 className="font-bold text-xl" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '0.2rem' }}>{subject}</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.2rem)' }}>
+                {activeTab === 'marks' ? 'CLASS PERFORMANCE OVERVIEW' :
+                  activeTab === 'add-marks' ? 'ENTER STUDENT SCORES' : 'MANAGE DAILY ATTENDANCE'}
+              </p>
+            </div>
           </div>
-          <button className="btn btn-primary" onClick={fetchDashboard}>
-            <RefreshCcw size={16} /> Sync Subject Data
+          <button className="btn btn-primary" onClick={fetchDashboard} style={{ width: 'auto' }}>
+            <RefreshCcw size={16} /> <span className="hide-on-mobile">Sync Subject Data</span>
           </button>
         </div>
 
@@ -248,7 +262,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Performance & Attendance Round Charts */}
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '3rem', marginBottom: '3rem' }}>
+            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
               {/* Performance Circle */}
               <div className="glass-panel card" style={{ height: '400px', padding: '2rem', textAlign: 'center' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>Student Performance</h3>
@@ -314,10 +328,10 @@ export default function AdminDashboard() {
             <div className="flex justify-center" style={{ marginBottom: '3rem' }}>
               <button
                 className="btn btn-primary"
-                style={{ width: '500px', fontWeight: '900', height: '75px', borderRadius: '20px', fontSize: '1.2rem', letterSpacing: '1px' }}
+                style={{ width: '100%', maxWidth: '500px', fontWeight: '900', height: '60px', borderRadius: '15px', fontSize: '1.1rem', letterSpacing: '1px' }}
                 onClick={() => setIsHistoryVisible(!isHistoryVisible)}
               >
-                {isHistoryVisible ? "CLOSE RECORDS" : "📂 VIEW ALL STUDENT SCORES"}
+                {isHistoryVisible ? "CLOSE RECORDS" : "📂 VIEW STUDENT SCORES"}
               </button>
             </div>
 
@@ -379,7 +393,7 @@ export default function AdminDashboard() {
                             type="text"
                             placeholder="Search titles..."
                             className="form-input"
-                            style={{ paddingLeft: '2.5rem', width: '180px', fontSize: '0.85rem', height: '35px' }}
+                            style={{ paddingLeft: '2.5rem', width: '160px', fontSize: '0.85rem', height: '35px' }}
                             value={assessmentFilter}
                             onChange={(e) => setAssessmentFilter(e.target.value)}
                           />
@@ -500,7 +514,9 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer',
-          transition: 'background 0.2s'
+          transition: 'background 0.2s',
+          flexWrap: 'wrap',
+          gap: '1rem'
         }}
       >
         <div className="flex items-center gap-4">
@@ -508,33 +524,36 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
           <div>
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700' }}>{assKey}</h3>
             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {students.length} Student Records • Max Marks: {students[0]?.max_marks}
+              {students.length} Student Records • Max: {students[0]?.max_marks}
             </p>
           </div>
         </div>
 
-        {isLocked && (
-          <span className="badge" style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-color)' }}>
-            <Lock size={12} /> Permanently Locked
-          </span>
-        )}
-
-        {criticalCount > 0 && (
-          <div className="flex items-center gap-3">
-            <button
-              className="btn btn-primary"
-              disabled={notifying.ALL}
-              style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-              onClick={handleNotifyAll}
-            >
-              <Mail size={14} />
-              {notifying.ALL ? "Sending..." : "Notify All Low Performers"}
-            </button>
-            <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>
-              {criticalCount} Low Performers
+        <div className="flex items-center gap-3 flex-wrap">
+          {isLocked && (
+            <span className="badge" style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-color)' }}>
+              <Lock size={12} /> <span className="hide-on-mobile">Permanently</span> Locked
             </span>
-          </div>
-        )}
+          )}
+
+          {criticalCount > 0 && (
+            <>
+              <button
+                className="btn btn-primary"
+                disabled={notifying.ALL}
+                style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                onClick={handleNotifyAll}
+              >
+                <Mail size={14} />
+                <span className="hide-on-mobile">{notifying.ALL ? "Sending..." : "Notify All Low Performers"}</span>
+                <span className="show-on-mobile">{notifying.ALL ? "..." : "Notify All"}</span>
+              </button>
+              <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>
+                {criticalCount} <span className="hide-on-mobile">Low Performers</span>
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Assessment Data Table (Expanded) */}
@@ -547,12 +566,12 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
             </div>
           )}
           {/* LOCAL SEARCH/FILTER */}
-          <div className="flex justify-between items-center" style={{ padding: '1rem', background: 'rgba(0,0,0,0.01)', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="flex justify-between items-center" style={{ padding: '1rem', background: 'rgba(0,0,0,0.01)', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '1rem' }}>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>SEARCH & FILTER</p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               <select
                 className="form-input"
-                style={{ width: '160px', fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                style={{ width: '150px', fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
@@ -568,7 +587,7 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
                   type="text"
                   placeholder="Filter students..."
                   className="form-input"
-                  style={{ paddingLeft: '2.2rem', width: '200px', fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                  style={{ paddingLeft: '2.2rem', width: '150px', fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -576,7 +595,8 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
             </div>
           </div>
 
-          <table className="w-full" style={{ borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-container">
+            <table className="w-full" style={{ borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
             <thead style={{ background: 'rgba(0,0,0,0.02)', color: 'var(--text-muted)' }}>
               <tr>
                 <th style={{ padding: '0.8rem 1rem', fontSize: '0.8rem' }}>Registration ID</th>
@@ -626,9 +646,10 @@ function AssessmentSection({ assKey, students, isExpanded, onToggle, isLocked, o
               )}
             </tbody>
           </table>
+          </div>
 
           {!isLocked && (
-            <div style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.02)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.02)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'right' }}>
                 <strong>Integrity Action:</strong> Once locked, these marks <br /> are permanent and cannot be changed.
               </div>

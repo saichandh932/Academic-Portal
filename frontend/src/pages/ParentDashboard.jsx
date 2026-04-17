@@ -95,37 +95,37 @@ export default function ParentDashboard() {
     <div className="min-h-screen" style={{ background: 'var(--bg-color)', color: 'var(--text-main)', paddingBottom: '5rem' }}>
       
       {/* Premium Header */}
-      <header className="vignan-nav" style={{ justifyContent: 'space-between', padding: '0 3rem', background: 'var(--vignan-navy)', border: 'none' }}>
+      <header className="vignan-nav" style={{ justifyContent: 'space-between', padding: '0 1.5rem', background: 'var(--vignan-navy)', border: 'none', height: 'auto', minHeight: '80px', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="flex items-center gap-4">
-           <img src="/vignan_logo.png" alt="Vignan logo" style={{ height: '50px', filter: 'brightness(0) invert(1)' }} />
-           <div style={{ height: '30px', width: '1px', background: 'rgba(255,255,255,0.2)', margin: '0 1rem' }}></div>
-           <h2 style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px' }}>PARENT PORTAL</h2>
+           <img src="/vignan_logo.png" alt="Vignan logo" style={{ height: '40px', filter: 'brightness(0) invert(1)' }} />
+           <div className="hide-on-mobile" style={{ height: '30px', width: '1px', background: 'rgba(255,255,255,0.2)', margin: '0 0.5rem' }}></div>
+           <h2 className="hide-on-mobile" style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: '800', letterSpacing: '1px' }}>PARENT PORTAL</h2>
         </div>
         <button 
           className="btn" 
           onClick={() => { sessionStorage.clear(); navigate("/"); }}
-          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2rem', padding: '0.6rem 1.2rem' }}
+          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2rem', padding: '0.4rem 1rem', fontSize: '0.85rem' }}
         >
-          <LogOut size={16} style={{ marginRight: '0.6rem' }} /> Logout
+          <LogOut size={14} style={{ marginRight: '0.4rem' }} /> Logout
         </button>
       </header>
 
       {/* Hero / Quick Stats */}
       <div style={{ 
         background: 'linear-gradient(135deg, var(--vignan-navy) 0%, var(--vignan-blue) 100%)', 
-        padding: '3rem 3rem 6rem',
+        padding: '3rem 1.5rem 6rem',
         color: 'white',
         position: 'relative',
         overflow: 'hidden'
       }}>
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '2rem' }}>
-          <div className="flex items-center gap-6">
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }}>
+          <div className="flex items-center gap-6" style={{ flexWrap: 'wrap' }}>
             <div style={{ 
-              width: '120px', 
-              height: '120px', 
+              width: 'clamp(80px, 20vw, 120px)', 
+              height: 'clamp(80px, 20vw, 120px)', 
               borderRadius: '1rem', 
               background: 'white', 
-              padding: '0.5rem',
+              padding: '0.4rem',
               boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
               display: 'flex',
               alignItems: 'center',
@@ -134,22 +134,22 @@ export default function ParentDashboard() {
               <img src={student?.photo_url || "/placeholder_student.png"} alt="Student" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.8rem' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0 }}>{student?.name || 'Academic Record'}</h1>
-              <p style={{ opacity: 0.8, fontSize: '1.1rem', marginTop: '0.5rem' }}>
+              <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', margin: 0 }}>{student?.name || 'Academic Record'}</h1>
+              <p style={{ opacity: 0.8, fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', marginTop: '0.5rem' }}>
                 <Users size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />
                 Reg No: <b style={{ letterSpacing: '1px' }}>{id}</b> | Batch {student?.batch || '2023-27'}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-4">
-             <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '1.2rem 2rem', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.4rem', opacity: 0.8 }}>Overall Attendance</p>
-                <h3 style={{ fontSize: '2rem', fontWeight: '900', margin: 0, color: 'white' }}>{overallAttendance}%</h3>
+          <div className="flex gap-4 flex-wrap">
+             <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '1rem 1.5rem', textAlign: 'center', flex: '1' }}>
+                <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.4rem', opacity: 0.8 }}>Overall Attendance</p>
+                <h3 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: '900', margin: 0, color: 'white' }}>{overallAttendance}%</h3>
              </div>
-             <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '1.2rem 2rem', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.4rem', opacity: 0.8 }}>Academic Standing</p>
-                <h3 style={{ fontSize: '2rem', fontWeight: '900', margin: 0, color: student?.performance === 'Low' ? '#ff6b6b' : '#51cf66' }}>
+             <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '1rem 1.5rem', textAlign: 'center', flex: '1' }}>
+                <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.4rem', opacity: 0.8 }}>Academic Standing</p>
+                <h3 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: '900', margin: 0, color: student?.performance === 'Low' ? '#ff6b6b' : '#51cf66' }}>
                   {student?.performance?.toUpperCase() || 'GOOD'}
                 </h3>
              </div>
@@ -172,11 +172,11 @@ export default function ParentDashboard() {
                </button>
             </div>
             
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+            <div className="table-container">
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '800px' }}>
                 <thead>
                   <tr style={{ background: 'var(--vignan-light)', borderBottom: '2px solid #ddd' }}>
-                    <th style={{ padding: '1.2rem', textAlign: 'left', minWidth: '250px', background: '#fcfcfc', color: '#666', borderRight: '1px solid #eee' }}>Assessment Name</th>
+                    <th style={{ padding: '1.2rem', textAlign: 'left', minWidth: '200px', background: '#fcfcfc', color: '#666', borderRight: '1px solid #eee' }}>Assessment Name</th>
                     {displaySubjects.map(sub => (
                       <th key={sub} style={{ padding: '1.2rem', fontWeight: '800', color: 'var(--vignan-navy)' }}>
                         {sub}
@@ -219,7 +219,7 @@ export default function ParentDashboard() {
           </div>
         </section>
 
-        <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))' }}>
+        <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(300px, 100%, 450px), 1fr))' }}>
           
           {/* 2. SUBJECT-WISE ATTENDANCE */}
           <section>
@@ -273,7 +273,7 @@ export default function ParentDashboard() {
                   Official Profile
                 </h2>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.5rem' }}>
                    <div>
                       <p style={{ margin: 0, fontSize: '0.8rem', color: '#999', textTransform: 'uppercase' }}>Parent/Guardian</p>
                       <p style={{ margin: '0.2rem 0 0', fontWeight: '600' }}>{student?.parent_name || 'N/A'}</p>
