@@ -42,6 +42,16 @@ export default function StudentDashboard() {
     fetchData();
   }, [id]);
 
+  // Preload Images for "Instant" feel
+  useEffect(() => {
+    if (id) {
+      const studentImg = new Image();
+      studentImg.src = `https://raw.githubusercontent.com/saichandh932/photos/main/${id}.webp`;
+      const fallbackImg = new Image();
+      fallbackImg.src = "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp";
+    }
+  }, [id]);
+
   if (loading) return <Loader text="Loading student record..." />;
   if (error) return <div className="container mt-4 text-center" style={{color: 'var(--danger)'}}>{error}</div>;
 
@@ -77,27 +87,36 @@ export default function StudentDashboard() {
             {/* Profile Photo Section */}
             <div style={{ 
               width: 'clamp(140px, 30vw, 180px)', 
-              height: 'clamp(140px, 30vw, 180px)', 
+              aspectRatio: '1/1',
               borderRadius: '50%', 
               background: 'linear-gradient(135deg, var(--bg-color) 0%, #e2e8f0 100%)',
               border: '4px solid white',
               boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
               overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: 'relative',
               flexShrink: 0
             }}>
-              {/* Note for User: Replace 'PHOTO_BASE_URL' with your GitHub link later */}
-              {studentProfile.photo_url ? (
-                <img 
-                  src={studentProfile.photo_url} 
-                  alt={studentProfile.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                />
-              ) : null}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+              {/* Profile Photo Logic: Trying GitHub Repository (.webp), fall back to def-image.webp */}
+              <img 
+                src={`https://raw.githubusercontent.com/saichandh932/photos/main/${id}.webp`} 
+                alt={studentProfile.name}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  display: 'block',
+                  borderRadius: '50%' 
+                }}
+                onError={(e) => { 
+                  if (e.target.src !== "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp") {
+                    e.target.src = "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp";
+                  } else {
+                    e.target.style.display = 'none'; 
+                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'; 
+                  }
+                }}
+              />
+              <div style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                 <User size={60} color="var(--text-muted)" style={{ opacity: 0.4 }} />
               </div>
             </div>

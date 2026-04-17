@@ -57,6 +57,16 @@ export default function ParentDashboard() {
     fetchData();
   }, [id]);
 
+  // Preload Images for "Instant" feel
+  useEffect(() => {
+    if (id) {
+      const studentImg = new Image();
+      studentImg.src = `https://raw.githubusercontent.com/saichandh932/photos/main/${id}.webp`;
+      const fallbackImg = new Image();
+      fallbackImg.src = "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp";
+    }
+  }, [id]);
+
   if (loading) return <Loader text="Retrieving student academic records..." />;
   if (error) return (
     <div className="container mt-4 text-center">
@@ -131,7 +141,24 @@ export default function ParentDashboard() {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <img src={student?.photo_url || "/placeholder_student.png"} alt="Student" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.8rem' }} />
+              <img 
+                src={`https://raw.githubusercontent.com/saichandh932/photos/main/${id}.webp`} 
+                alt="Student" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  borderRadius: '0.8rem',
+                  display: 'block'
+                }} 
+                onError={(e) => { 
+                  if (e.target.src !== "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp") {
+                    e.target.src = "https://raw.githubusercontent.com/saichandh932/photos/main/def-image.webp";
+                  } else {
+                    e.target.src = "/placeholder_student.png"; // Final local fallback
+                  }
+                }}
+              />
             </div>
             <div>
               <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', margin: 0 }}>{student?.name || 'Academic Record'}</h1>

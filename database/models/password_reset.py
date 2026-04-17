@@ -15,7 +15,7 @@ class PasswordResetModel:
     @staticmethod
     def create_token(registration_number, role='Student'):
         token = secrets.token_urlsafe(32)
-        expires_at = datetime.now() + timedelta(hours=2)
+        expires_at = datetime.now() + timedelta(minutes=30)
         try:
             db = get_db()
             # Clean up existing tokens for this user

@@ -24,3 +24,6 @@ database/*.db
 # OS
 .DS_Store
 Thumbs.db
+
+# Scratch / Temp
+scratch/

@@ -150,7 +150,7 @@ class EmailService:
             To proceed with your password reset, please click the following link:
             {reset_link}
 
-            This link is secure and will remain valid for the next 2 hours. If you did not request this, please ignore this email; no changes have been made to your account.
+            This link is secure and will remain valid for the next 30 minutes. If you did not request this, please ignore this email; no changes have been made to your account.
 
             Best regards,
             Academic Portal Admin Desk

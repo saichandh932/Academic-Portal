@@ -58,4 +58,4 @@ class Config:
     SMTP_FROM_NAME   = os.getenv("SMTP_FROM_NAME",   "Vignan Academic Portal")
     ALERT_EMAIL_TO   = os.getenv("ALERT_EMAIL_TO",   "")
     EMAIL_ENABLED    = os.getenv("EMAIL_ENABLED",    "true").lower() == "true"
-    FRONTEND_URL     = os.getenv("FRONTEND_URL",     "http://localhost:5173")
+    FRONTEND_URL     = os.getenv("FRONTEND_URL",     "https://academic-portal-kohl.vercel.app")
