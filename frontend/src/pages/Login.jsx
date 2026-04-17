@@ -238,7 +238,7 @@ export default function Login() {
                     <button 
                       type="button" 
                       className="vignan-btn" 
-                      style={{ background: 'transparent', border: '1px solid #ddd', marginTop: '0.5rem' }}
+                      style={{ background: 'transparent', border: '1px solid #cbd5e1', color: 'var(--text-muted)', marginTop: '0.5rem' }}
                       onClick={() => setShowForgot(false)}
                     >
                       Back
