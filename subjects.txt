@@ -1,0 +1,1 @@
+SUBJECTS = ['SE', 'PADCOM', 'CNS', 'CLSA', 'IIC', 'SE Lab', 'CNS Lab', 'ML Lab', 'IT Lab', 'QALR', 'ML', 'IT', 'IDP-II', 'Training (TRG)'] 

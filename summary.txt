@@ -1,0 +1,1 @@
+Yes, I understand. I will move the subject selection to the Login screen so that the entire Dashboard experience is tailored to just one subject at a time. 
