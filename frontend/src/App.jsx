@@ -5,6 +5,7 @@ import ParentDashboard from './pages/ParentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ResetPassword from './pages/ResetPassword';
 import { ProtectedRoute } from './components/AuthGuard';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
           />
           
           <Route path="/reset-password" element={<ResetPassword />} />
+          
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>

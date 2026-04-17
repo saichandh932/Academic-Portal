@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css?family=Arvo');
+
+/*======================
+    404 page
+=======================*/
+
+.page_404 { 
+    padding: 40px 0; 
+    background: #fff; 
+    font-family: 'Arvo', serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page_404 img { 
+    width: 100%;
+}
+
+/* React/Flexbox versions of Bootstrap classes */
+.page_404 .row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.page_404 .col-sm-12 {
+    width: 100%;
+    max-width: 800px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* specific 404 styling */
+.four_zero_four_bg {
+    background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+    height: 400px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.four_zero_four_bg h1 {
+    font-size: 80px;
+    margin: 0;
+    padding-top: 20px;
+}
+
+.four_zero_four_bg h3 {
+    font-size: 80px;
+}
+             
+.link_404 {             
+    color: #fff !important;
+    padding: 10px 20px;
+    background: var(--vignan-blue, #00609C);
+    margin: 20px 0;
+    display: inline-block;
+    border-radius: 4px;
+    text-decoration: none;
+    font-family: inherit;
+    transition: opacity 0.2s ease;
+}
+
+.link_404:hover {
+    opacity: 0.9;
+}
+
+.contant_box_404 { 
+    margin-top: -50px;
+}
