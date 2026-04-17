@@ -11,9 +11,9 @@
       "config": { "distDir": "dist" }
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/:path*.:ext", "destination": "/frontend/:path*.:ext" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
