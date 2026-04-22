@@ -59,43 +59,52 @@ def upload_attendance():
 
         count = AttendanceModel.upload_attendance(subject, date_str, period, records)
 
-        # Trigger Automated Absence Emails (Asynchronous)
-        absent_records = [r for r in records if r.get('status') == 'Absent']
-        alerted_list = []
-        if absent_records:
-            absent_regs = [r['registration_number'] for r in absent_records]
-            alerted_list = absent_regs
-            
-            # MongoDB lookup for emails
-            from database.db import get_db
-            db = get_db()
-            student_docs = db["students"].find(
-                {"registration_number": {"$in": absent_regs}},
-                {"registration_number": 1, "email": 1, "_id": 0}
-            )
-            student_emails = {doc["registration_number"]: doc.get("email") for doc in student_docs}
-
-            for r in absent_records:
-                r['email'] = student_emails.get(r['registration_number'])
-
-            import threading
-            def send_mails_bg(recs, subj, dt, per):
-                try:
-                    EmailService.send_bulk_absence_alerts(recs, subj, dt, per)
-                except Exception as e:
-                    print(f"Background email error: {e}")
-
-            threading.Thread(target=send_mails_bg, args=(absent_records, subject, date_str, period)).start()
-
         return jsonify({
             "success": True,
-            "message": f"Attendance finalized for {subject} (Period {period}). Emails are being dispatched.",
-            "count": count,
-            "emails_dispatched": len(alerted_list),
-            "alerted_students": alerted_list
+            "message": f"Attendance finalized for {subject} (Period {period}).",
+            "count": count
         }), 201
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
+
+@attendance_bp.route("/dispatch_alerts", methods=["POST"], strict_slashes=False)
+def dispatch_alerts():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"success": False, "error": "Missing payload"}), 400
+
+    subject = data.get("subject") or data.get("subject_name")
+    date_str = data.get("date")
+    period = int(data.get("period", 1))
+    records = data.get("records", [])
+
+    absent_records = [r for r in records if r.get('status') == 'Absent']
+    dispatch_report = []
+    
+    if absent_records:
+        absent_regs = [r['registration_number'] for r in absent_records]
+        
+        # MongoDB lookup for emails
+        from database.db import get_db
+        db = get_db()
+        student_docs = db["students"].find(
+            {"registration_number": {"$in": absent_regs}},
+            {"registration_number": 1, "email": 1, "_id": 0}
+        )
+        student_emails = {doc["registration_number"]: doc.get("email") for doc in student_docs}
+
+        for r in absent_records:
+            r['email'] = student_emails.get(r['registration_number'])
+
+        dispatch_report = EmailService.send_bulk_absence_alerts(absent_records, subject, date_str, period)
+
+    alerted_list = [d.get("reg_num") for d in dispatch_report] if dispatch_report else []
+    return jsonify({
+        "success": True,
+        "emails_dispatched": len(dispatch_report),
+        "dispatch_details": dispatch_report,
+        "alerted_students": alerted_list
+    }), 200
 
 @attendance_bp.route("/", methods=["GET"])
 def get_attendance():
