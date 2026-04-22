@@ -47,7 +47,7 @@ function MLParentPanel({ studentId }) {
           <Brain size={22} color="#4C72B0" />
           <div>
             <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>AI Academic Analysis</h2>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>Machine Learning predictions based on live attendance & marks data</p>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>AI predictions based on live attendance & marks data</p>
           </div>
         </div>
 
@@ -56,9 +56,9 @@ function MLParentPanel({ studentId }) {
           {/* Performance Classification */}
           {pred && (
             <div style={{ padding: '1.25rem', borderRadius: '0.9rem', background: `${predColor}10`, border: `1px solid ${predColor}30` }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>ML Performance Class</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>Predicted Academic Standing</div>
               <div style={{ fontSize: '2rem', fontWeight: '900', color: predColor }}>{pred.prediction}</div>
-              <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.25rem' }}>Confidence: {Math.round((pred.confidence || 0) * 100)}%</div>
+              <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.25rem' }}>AI Certainty: {Math.round((pred.confidence || 0) * 100)}%</div>
               {/* Prob bars */}
               <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 {pred.probabilities && Object.entries(pred.probabilities).map(([cls, prob]) => (
@@ -369,7 +369,7 @@ export default function ParentDashboard() {
           </div>
         </section>
 
-        {/* 2. AI ML PANEL */}
+        {/* 2. AI PANEL */}
         <MLParentPanel studentId={id} />
 
         <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(300px, 100%, 450px), 1fr))' }}>

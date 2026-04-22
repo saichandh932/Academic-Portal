@@ -50,7 +50,7 @@ function GradeCard({ registrationNumber }) {
         <Award size={22} color={gradeColor} />
         <div>
           <h2 className="font-bold" style={{ margin: 0 }}>Predicted Semester Grade</h2>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Ridge Regression model · Vignan 10-point grading scale</p>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>AI-Powered Prediction · Vignan 10-point grading scale</p>
         </div>
       </div>
 
@@ -157,7 +157,7 @@ function AIInsightCard({ registrationNumber }) {
         </div>
         <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
           <div style={{ fontSize: '1.8rem', fontWeight: '900', color }}>{prediction}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Confidence: {confPct}%</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>AI Certainty: {confPct}%</div>
         </div>
       </div>
 
@@ -466,8 +466,8 @@ export default function StudentDashboard() {
           <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', background: 'linear-gradient(135deg,rgba(0,96,156,0.06) 0%,rgba(0,33,71,0.04) 100%)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <BookOpen color="var(--primary)" />
             <div>
-              <h2 className="font-bold" style={{ margin: 0 }}>Topic Mastery (ML Prediction)</h2>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Click a subject to see per-topic proficiency powered by Machine Learning</p>
+              <h2 className="font-bold" style={{ margin: 0 }}>Topic Mastery (AI Prediction)</h2>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Click a subject to see per-topic proficiency powered by AI</p>
             </div>
           </div>
           <div style={{ padding: '1.5rem' }}>
