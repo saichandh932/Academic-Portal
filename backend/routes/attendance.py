@@ -59,11 +59,12 @@ def upload_attendance():
 
         count = AttendanceModel.upload_attendance(subject, date_str, period, records)
 
-        # Trigger Automated Absence Emails
+        # Trigger Automated Absence Emails (Asynchronous)
         absent_records = [r for r in records if r.get('status') == 'Absent']
-        dispatch_report = []
+        alerted_list = []
         if absent_records:
             absent_regs = [r['registration_number'] for r in absent_records]
+            alerted_list = absent_regs
             
             # MongoDB lookup for emails
             from database.db import get_db
@@ -77,15 +78,20 @@ def upload_attendance():
             for r in absent_records:
                 r['email'] = student_emails.get(r['registration_number'])
 
-            dispatch_report = EmailService.send_bulk_absence_alerts(absent_records, subject, date_str, period)
+            import threading
+            def send_mails_bg(recs, subj, dt, per):
+                try:
+                    EmailService.send_bulk_absence_alerts(recs, subj, dt, per)
+                except Exception as e:
+                    print(f"Background email error: {e}")
 
-        alerted_list = [d.get("reg_num") for d in dispatch_report] if dispatch_report else []
+            threading.Thread(target=send_mails_bg, args=(absent_records, subject, date_str, period)).start()
+
         return jsonify({
             "success": True,
-            "message": f"Attendance finalized for {subject} (Period {period}).",
+            "message": f"Attendance finalized for {subject} (Period {period}). Emails are being dispatched.",
             "count": count,
-            "emails_dispatched": len(dispatch_report),
-            "dispatch_details": dispatch_report,
+            "emails_dispatched": len(alerted_list),
             "alerted_students": alerted_list
         }), 201
     except Exception as exc:

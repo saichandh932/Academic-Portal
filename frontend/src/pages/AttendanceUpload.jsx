@@ -107,31 +107,37 @@ export default function AttendanceUpload({ subject, onUploadSuccess }) {
       const res = await axios.post("/api/db/attendance/upload", payload);
       setMessage(res.data.message);
       
-      // SHOW DETAILED SUCCESS POPUP
-      const notifiedIDs = res.data.alerted_students || [];
-      if (notifiedIDs.length > 0) {
-          const idsString = notifiedIDs.length > 5 
-            ? notifiedIDs.slice(0, 5).join(', ') + ` and ${notifiedIDs.length - 5} more`
-            : notifiedIDs.join(', ');
-            
-          alert(
-            `✅ ATTENDANCE FINALIZED & EMAILS DISPATCHED\n` +
-            `------------------------------------------\n\n` +
-            `📧 Emails sent to: ${idsString}\n\n` +
-            `📄 Message Sent Preview:\n` +
-            `"Hello Student, this is an automated notification regarding your attendance in ${subject} on ${date}. Status: ABSENT. Please maintain required attendance."\n\n` +
-            `This record is now permanently locked.`
-          );
-      } else {
-          alert(`✅ Attendance Finalized Successfully!\n\nNo absence alerts were triggered.`);
-      }
+      // Update UI state FIRST so the browser can render before the blocking alert pops up
+      setLockedSlots(prev => [...prev, { date: date, period: parseInt(period) }]);
+      setLoading(false);
+      
+      // Defer the alert to the next event loop tick
+      setTimeout(() => {
+          const notifiedIDs = res.data.alerted_students || [];
+          if (notifiedIDs.length > 0) {
+              const idsString = notifiedIDs.length > 5 
+                ? notifiedIDs.slice(0, 5).join(', ') + ` and ${notifiedIDs.length - 5} more`
+                : notifiedIDs.join(', ');
+                
+              alert(
+                `✅ ATTENDANCE FINALIZED & EMAILS DISPATCHED\n` +
+                `------------------------------------------\n\n` +
+                `📧 Emails queued for: ${idsString}\n\n` +
+                `📄 Message Sent Preview:\n` +
+                `"Hello Student, this is an automated notification regarding your attendance in ${subject} on ${date}. Status: ABSENT. Please maintain required attendance."\n\n` +
+                `This record is now permanently locked.`
+              );
+          } else {
+              alert(`✅ Attendance Finalized Successfully!\n\nNo absence alerts were triggered.`);
+          }
 
-      // Refresh locks so the UI updates to locked state
-      fetchLocks();
-      if (onUploadSuccess) onUploadSuccess();
+          // Refresh locks so the UI updates to locked state (already rendered as false loading, but need to fetch true lock state)
+          fetchLocks();
+          if (onUploadSuccess) onUploadSuccess();
+      }, 100);
+
     } catch (err) {
       setError(err.response?.data?.error || "Connection error to Attendance API.");
-    } finally {
       setLoading(false);
     }
   };
