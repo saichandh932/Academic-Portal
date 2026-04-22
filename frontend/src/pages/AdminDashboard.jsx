@@ -26,7 +26,7 @@ function MLInsightsTab() {
   }, []);
 
   const handleRetrain = async () => {
-    if (!window.confirm('Retrain the ML model on current data? This may take 30–60 seconds.')) return;
+    if (!window.confirm('Retrain the AI Model on the latest student data? This may take 30–60 seconds.')) return;
     setRetraining(true);
     setRetrainResult(null);
     try {
@@ -36,7 +36,6 @@ function MLInsightsTab() {
       axios.get('/api/model/info').then(r2 => setModelInfo(r2.data)).catch(() => {});
       axios.get('/api/model/comparison').then(r2 => setComparison(r2.data)).catch(() => {});
       axios.get('/api/model/feature-importance').then(r2 => setImportance(r2.data)).catch(() => {});
-      axios.get('/api/model/evaluation?format=base64').then(r2 => { if (r2.data.success) setEvalImg(r2.data.image_b64); }).catch(() => {});
     } catch (e) {
       setRetrainResult({ success: false, error: e.response?.data?.error || e.message });
     } finally {
@@ -61,7 +60,7 @@ function MLInsightsTab() {
         </div>
         <button className="btn btn-primary" onClick={handleRetrain} disabled={retraining} style={{ width: 'auto' }}>
           <RefreshCcw size={16} style={{ marginRight: '0.5rem' }} />
-          {retraining ? 'Retraining…' : 'Retrain Model'}
+          {retraining ? 'Updating AI...' : 'Update AI Model'}
         </button>
       </div>
 
@@ -78,13 +77,16 @@ function MLInsightsTab() {
       {comparison?.models && (
         <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <h3 className="font-bold" style={{ margin: 0 }}>📊 Model Comparison</h3>
-            <span className="badge" style={{ background: '#4C72B0', color: 'white', fontSize: '0.7rem' }}>Best: {comparison.best_model}</span>
+            <h3 className="font-bold" style={{ margin: 0 }}>📊 AI Model Performance</h3>
+            <span className="badge" style={{ background: '#4C72B0', color: 'white', fontSize: '0.7rem' }}>Best Algorithm: {comparison.best_model}</span>
+          </div>
+          <div style={{ padding: '1rem 1.5rem', background: 'rgba(0,0,0,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            The system tests multiple algorithms automatically. <b>Reliability Score</b> indicates how well the AI predicts unseen data. <b>Accuracy</b> is its exact match rate.
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-muted)' }}>
-                <tr>{['Model','Train Acc','Test Acc','CV Mean','CV Std','F1 (W)'].map(h => <th key={h} style={{ padding: '0.8rem 1rem', fontSize: '0.8rem' }}>{h}</th>)}</tr>
+                <tr>{['Algorithm', 'Training Match', 'Accuracy', 'Reliability Score', 'Variance', 'Overall Balance'].map(h => <th key={h} style={{ padding: '0.8rem 1rem', fontSize: '0.8rem' }}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {Object.entries(comparison.models).map(([name, m], i) => (
@@ -106,15 +108,15 @@ function MLInsightsTab() {
           {Object.keys(comparison.models).length > 0 && (
             <div style={{ padding: '1.5rem' }}>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={Object.entries(comparison.models).map(([name, m]) => ({ name: name.split(' ')[0], 'Test Acc': m.test_accuracy, 'CV Mean': m.cv_mean, 'F1': m.f1_weighted }))} barSize={18}>
+                <BarChart data={Object.entries(comparison.models).map(([name, m]) => ({ name: name.split(' ')[0], 'Accuracy': m.test_accuracy, 'Reliability Score': m.cv_mean, 'Overall Balance': m.f1_weighted }))} barSize={18}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis domain={[0, 105]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                   <Tooltip formatter={v => `${v}%`} />
                   <Legend />
-                  <Bar dataKey="Test Acc" fill="#4C72B0" radius={[4,4,0,0]} />
-                  <Bar dataKey="CV Mean" fill="#55A868" radius={[4,4,0,0]} />
-                  <Bar dataKey="F1" fill="#C44E52" radius={[4,4,0,0]} />
+                  <Bar dataKey="Accuracy" fill="#4C72B0" radius={[4,4,0,0]} />
+                  <Bar dataKey="Reliability Score" fill="#55A868" radius={[4,4,0,0]} />
+                  <Bar dataKey="Overall Balance" fill="#C44E52" radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -126,32 +128,34 @@ function MLInsightsTab() {
       {importance?.features && (
         <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-            <h3 className="font-bold" style={{ margin: 0 }}>🎯 Feature Importance ({importance.importance_type === 'feature_importance' ? 'Tree-based' : 'Coefficient weight'})</h3>
+            <h3 className="font-bold" style={{ margin: 0 }}>🎯 What Drives Student Performance?</h3>
+          </div>
+          <div style={{ padding: '1rem 1.5rem', background: 'rgba(0,0,0,0.02)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            The AI has determined that the following factors have the biggest impact on a student's final academic standing. A higher percentage means the AI relies on this factor more heavily when identifying at-risk students.
           </div>
           <div style={{ padding: '1.5rem' }}>
-            {importance.features.map((f, i) => (
-              <div key={f.feature} style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
-                  <span style={{ fontWeight: '700' }}>{f.feature.replace('_', ' ')}</span>
-                  <span style={{ fontWeight: '800', color: MODEL_COLORS[i % 4] }}>{f.importance_pct}%</span>
-                </div>
-                <div style={{ height: '8px', borderRadius: '99px', background: 'rgba(0,0,0,0.07)' }}>
-                  <div style={{ height: '100%', borderRadius: '99px', width: `${f.importance_pct}%`, background: MODEL_COLORS[i % 4], transition: 'width 0.8s ease' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+            {importance.features.map((f, i) => {
+              const friendlyNames = {
+                'previous_score': 'Previous Semester GPA',
+                'study_hours': 'Weekly Study Hours',
+                'internal_marks': 'Mid-Semester / Internal Marks',
+                'assignments': 'Assignment Completion Rate',
+                'attendance': 'Class Attendance Percentage'
+              };
+              const label = friendlyNames[f.feature] || f.feature.replace('_', ' ');
 
-      {/* Evaluation Image */}
-      {evalImg && (
-        <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-            <h3 className="font-bold" style={{ margin: 0 }}>📈 Model Evaluation Charts</h3>
-          </div>
-          <div style={{ padding: '1rem' }}>
-            <img src={`data:image/png;base64,${evalImg}`} alt="Model Evaluation" style={{ width: '100%', borderRadius: '0.5rem' }} />
+              return (
+                <div key={f.feature} style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
+                    <span style={{ fontWeight: '700' }}>{label}</span>
+                    <span style={{ fontWeight: '800', color: MODEL_COLORS[i % 4] }}>{f.importance_pct}% Impact</span>
+                  </div>
+                  <div style={{ height: '10px', borderRadius: '99px', background: 'rgba(0,0,0,0.07)' }}>
+                    <div style={{ height: '100%', borderRadius: '99px', width: `${f.importance_pct}%`, background: MODEL_COLORS[i % 4], transition: 'width 0.8s ease' }} />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
