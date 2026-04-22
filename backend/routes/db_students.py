@@ -270,6 +270,44 @@ def upload_marks():
                     student_id   = reg_num,
                     request_type = "marks_upload",
                 )
+
+                # ── Smart ML Risk Alert ──────────────────────────────────────
+                try:
+                    from backend.services.grade_predictor import predict_grade
+                    from backend.services.explainer      import explain_prediction
+                    from backend.services.email_service  import EmailService
+
+                    grade_result = predict_grade(live_features)
+                    risk_score   = grade_result["risk_score"]
+                    risk_level   = grade_result["risk_level"]
+
+                    if risk_score >= 45:  # high or critical threshold
+                        explanation = explain_prediction(
+                            live_features, res["prediction"], res["probabilities"]
+                        )
+                        recommendations = explanation.get("recommendations", [])
+
+                        # Fetch student email
+                        student_doc = _get_db()["students"].find_one(
+                            {"registration_number": reg_num}, {"email": 1}
+                        )
+                        student_email = (student_doc or {}).get("email", "")
+
+                        if student_email:
+                            EmailService.send_risk_alert(
+                                student_email = student_email,
+                                student_id    = reg_num,
+                                risk_score    = risk_score,
+                                risk_level    = risk_level,
+                                grade_letter  = grade_result["grade_letter"],
+                                expected_pct  = grade_result["expected_percentage"],
+                                prediction    = res["prediction"],
+                                recommendations = recommendations,
+                            )
+                            print(f"[ML ALERT] Risk alert sent → {reg_num} (score={risk_score}, level={risk_level})")
+                except Exception:
+                    pass  # Never let email failure break anything
+
                 repredicted += 1
         except Exception:
             pass  # Re-prediction must never break the marks upload

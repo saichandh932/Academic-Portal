@@ -159,8 +159,89 @@ function MLInsightsTab() {
   );
 }
 
+// ── ML Risk Leaderboard ───────────────────────────────────────────────────────
+function MLRiskLeaderboard() {
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('/api/predict/leaderboard/risk')
+      .then(r => { if (r.data.success) setLeaderboard(r.data.leaderboard); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const getRiskBadge = (level) => {
+    const styles = {
+      critical: { bg: '#fee2e2', color: '#ef4444', icon: '🚨' },
+      high:     { bg: '#ffedd5', color: '#f97316', icon: '⚠️' },
+      moderate: { bg: '#fef3c7', color: '#f59e0b', icon: '⚡' },
+      safe:     { bg: '#dcfce7', color: '#22c55e', icon: '✅' },
+    }[level] || { bg: '#f1f5f9', color: '#64748b', icon: '❓' };
+
+    return (
+      <span style={{ background: styles.bg, color: styles.color, padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase' }}>
+        {styles.icon} {level}
+      </span>
+    );
+  };
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading ML Risk Leaderboard...</div>;
+
+  return (
+    <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)' }}>
+      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h3 className="font-bold" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShieldAlert color="var(--vignan-red)" size={20} /> Class Risk Leaderboard
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Students sorted by highest predicted risk</p>
+        </div>
+      </div>
+      <div className="table-container">
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+          <thead>
+            <tr style={{ background: 'var(--vignan-light)', borderBottom: '2px solid #ddd' }}>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Rank</th>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Student</th>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Predicted Grade</th>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Expected %</th>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>At-Risk Score</th>
+              <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaderboard.map((student, idx) => (
+              <tr key={student.registration_number} style={{ borderBottom: '1px solid #eee', background: idx % 2 === 0 ? 'white' : 'rgba(0,0,0,0.01)' }}>
+                <td style={{ padding: '1rem', fontWeight: '800', color: idx < 3 ? 'var(--vignan-red)' : 'var(--text-muted)' }}>#{idx + 1}</td>
+                <td style={{ padding: '1rem' }}>
+                  <div style={{ fontWeight: '700' }}>{student.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{student.registration_number}</div>
+                </td>
+                <td style={{ padding: '1rem', fontWeight: '900', fontSize: '1.2rem', color: ['S','A','B'].includes(student.grade_letter) ? '#22c55e' : (['C','D'].includes(student.grade_letter) ? '#f59e0b' : '#ef4444') }}>
+                  {student.grade_letter}
+                </td>
+                <td style={{ padding: '1rem', fontWeight: '600' }}>{student.expected_pct}%</td>
+                <td style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: '900', fontSize: '1.1rem', color: student.risk_score >= 45 ? '#ef4444' : 'inherit' }}>{student.risk_score}</span>
+                    <div style={{ flex: 1, height: '6px', background: '#eee', borderRadius: '99px', minWidth: '60px' }}>
+                      <div style={{ height: '100%', borderRadius: '99px', width: `${student.risk_score}%`, background: student.risk_score >= 70 ? '#ef4444' : student.risk_score >= 45 ? '#f97316' : student.risk_score >= 20 ? '#f59e0b' : '#22c55e' }} />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: '1rem' }}>{getRiskBadge(student.risk_level)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
+
   const subject = searchParams.get('subject') || "Assigned Subject";
   const navigate = useNavigate();
 
@@ -585,7 +666,10 @@ export default function AdminDashboard() {
             <ManualUpload subject={subject} onUploadSuccess={() => { fetchDashboard(); setActiveTab('marks'); }} />
           </div>
         ) : activeTab === 'ml-insights' ? (
-          <MLInsightsTab />
+          <div className="animate-fade-in">
+            <MLInsightsTab />
+            <MLRiskLeaderboard />
+          </div>
         ) : (
           <div className="animate-fade-in">
             <AttendanceUpload subject={subject} onUploadSuccess={() => { fetchAttendance(); setActiveTab('marks'); }} />

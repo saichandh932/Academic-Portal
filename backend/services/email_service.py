@@ -171,3 +171,61 @@ class EmailService:
         except Exception as e:
             print(f"[EMAIL ERROR] Reset failed for {target_email}: {e}")
             return False, str(e)
+
+    @staticmethod
+    def send_risk_alert(student_email: str, student_id: str,
+                        risk_score: int, risk_level: str,
+                        grade_letter: str, expected_pct: float,
+                        prediction: str, recommendations: list) -> tuple:
+        """
+        ML-powered at-risk alert email.
+        Fires when risk_score >= 45 (high/critical) after marks upload re-prediction.
+        """
+        rec_lines = "\n".join(f"  • {r}" for r in (recommendations or [])[:4])
+        risk_emoji = {"safe": "✅", "moderate": "⚡", "high": "⚠️", "critical": "🚨"}.get(risk_level, "⚠️")
+
+        if not Config.EMAIL_ENABLED:
+            print(f"[MOCK RISK ALERT] To: {student_email} | Risk: {risk_score} ({risk_level}) | Grade: {grade_letter}")
+            return True, "Mock sent"
+
+        try:
+            msg = MIMEMultipart()
+            msg['From']    = f"{Config.SMTP_FROM_NAME} <{Config.SMTP_USER}>"
+            msg['To']      = student_email
+            msg['Subject'] = f"{risk_emoji} Academic Risk Alert — Action Required ({student_id})"
+
+            body = f"""
+Hello Student {student_id},
+
+Our AI Academic Monitoring System has flagged a concern about your current academic trajectory.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  AT-RISK SCORE   : {risk_score} / 100  [{risk_level.upper()}]
+  ML PERFORMANCE  : {prediction}
+  PREDICTED GRADE : {grade_letter}  ({expected_pct}% expected)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AI Recommendations for Improvement:
+{rec_lines if rec_lines else '  • Focus on improving attendance and completing all assignments.'}
+
+Please take immediate action to improve your academic standing. You can log in to the
+Academic Portal to view your detailed AI analysis, trend chart, and subject-wise breakdown.
+
+If you need support, please contact your faculty advisor immediately.
+
+Best regards,
+{Config.SMTP_FROM_NAME}
+Vignan's Foundation for Science, Technology & Research
+            """
+            msg.attach(MIMEText(body.strip(), 'plain'))
+
+            server = smtplib.SMTP(Config.SMTP_HOST, Config.SMTP_PORT, timeout=10)
+            if Config.SMTP_USE_TLS:
+                server.starttls()
+            server.login(Config.SMTP_USER, Config.SMTP_PASSWORD)
+            server.send_message(msg)
+            server.quit()
+            return True, "Risk alert sent"
+        except Exception as e:
+            print(f"[EMAIL ERROR] Risk alert failed for {student_email}: {e}")
+            return False, str(e)

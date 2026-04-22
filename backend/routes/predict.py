@@ -245,6 +245,64 @@ def predict_grade(registration_number: str):
     }), 200
 
 
+# ── Attendance Dropout Predictor ───────────────────────────────────────────────
+@predict_bp.route("/predict/attendance/<registration_number>", methods=["GET"])
+def predict_attendance_dropout(registration_number: str):
+    """
+    GET /api/predict/attendance/<id>
+    Predicts if the student will drop below the 75% attendance threshold.
+    """
+    try:
+        from backend.services.attendance_predictor import predict_attendance_for_student
+        result = predict_attendance_for_student(registration_number)
+        return jsonify(result), 200 if result.get("success") else 404
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# ── Class Risk Leaderboard ─────────────────────────────────────────────────────
+@predict_bp.route("/predict/leaderboard/risk", methods=["GET"])
+def predict_risk_leaderboard():
+    """
+    GET /api/predict/leaderboard/risk
+    Returns all students sorted by at-risk score (highest risk first).
+    """
+    try:
+        from database.db import get_db
+        from backend.services.feature_extractor import extract_features
+        from backend.services.grade_predictor import predict_grade
+        
+        students = list(get_db()["students"].find({}, {"registration_number": 1, "name": 1, "email": 1, "_id": 0}))
+        
+        leaderboard = []
+        for s in students:
+            reg_num = s["registration_number"]
+            try:
+                features, _ = extract_features(reg_num)
+                grade_res   = predict_grade(features)
+                leaderboard.append({
+                    "registration_number": reg_num,
+                    "name":                s.get("name", "Unknown"),
+                    "email":               s.get("email", ""),
+                    "risk_score":          grade_res["risk_score"],
+                    "risk_level":          grade_res["risk_level"],
+                    "expected_pct":        grade_res["expected_percentage"],
+                    "grade_letter":        grade_res["grade_letter"],
+                })
+            except Exception:
+                continue  # skip if feature extraction fails (e.g. no data)
+                
+        # Sort by risk_score descending
+        leaderboard.sort(key=lambda x: x["risk_score"], reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "total": len(leaderboard),
+            "leaderboard": leaderboard
+        }), 200
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
 # ── Batch prediction ───────────────────────────────────────────────────────────
 @predict_bp.route("/predict/batch", methods=["POST"])
 def predict_batch():
