@@ -676,7 +676,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="animate-fade-in">
-            <AttendanceUpload subject={subject} onUploadSuccess={() => { fetchAttendance(); setActiveTab('marks'); }} />
+            <AttendanceUpload subject={subject} onUploadSuccess={() => { fetchAttendance(); }} />
           </div>
         )}
       </main>
