@@ -52,9 +52,9 @@ function MLInsightsTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Brain size={28} color="#4C72B0" />
           <div>
-            <h2 className="font-bold" style={{ margin: 0 }}>ML Model Insights</h2>
+            <h2 className="font-bold" style={{ margin: 0 }}>AI System Diagnostics</h2>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              {modelInfo ? `Active: ${modelInfo.best_model_name || modelInfo.model_type} — CV Accuracy: ${modelInfo.best_cv_acc ?? '—'}%` : 'Loading model info...'}
+              {modelInfo ? `Active: ${modelInfo.best_model_name || modelInfo.model_type} — Reliability Score: ${modelInfo.best_cv_acc ?? '—'}%` : 'Loading model info...'}
             </p>
           </div>
         </div>
@@ -67,8 +67,8 @@ function MLInsightsTab() {
       {retrainResult && (
         <div className="glass-panel" style={{ padding: '1rem 1.5rem', marginBottom: '1.5rem', borderLeft: `4px solid ${retrainResult.success ? 'var(--success)' : 'var(--danger)'}`, background: 'var(--surface-solid)' }}>
           {retrainResult.success
-            ? <p style={{ margin: 0 }}>✅ Model retrained! Train: <b>{retrainResult.metrics?.train_accuracy}</b> | Test: <b>{retrainResult.metrics?.test_accuracy}</b> | CV: <b>{retrainResult.metrics?.cv_accuracy}</b></p>
-            : <p style={{ margin: 0, color: 'var(--danger)' }}>❌ Retrain failed: {retrainResult.error}</p>
+            ? <p style={{ margin: 0 }}>✅ AI Update Complete! Training Match: <b>{retrainResult.metrics?.train_accuracy}</b> | Accuracy: <b>{retrainResult.metrics?.test_accuracy}</b> | Reliability Score: <b>{retrainResult.metrics?.cv_accuracy}</b></p>
+            : <p style={{ margin: 0, color: 'var(--danger)' }}>❌ AI Update failed: {retrainResult.error}</p>
           }
         </div>
       )}
@@ -163,7 +163,7 @@ function MLInsightsTab() {
   );
 }
 
-// ── ML Risk Leaderboard ───────────────────────────────────────────────────────
+// ── AI Risk Leaderboard ───────────────────────────────────────────────────────
 function MLRiskLeaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +189,7 @@ function MLRiskLeaderboard() {
     );
   };
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading ML Risk Leaderboard...</div>;
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading AI Risk Leaderboard...</div>;
 
   return (
     <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)' }}>
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
             style={{ justifyContent: 'flex-start', border: activeTab === 'ml-insights' ? 'none' : '1px solid rgba(255,255,255,0.1)', color: 'white', background: activeTab === 'ml-insights' ? 'var(--primary)' : 'rgba(255,255,255,0.02)', padding: '0.8rem 1.2rem', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}
             onClick={() => { setActiveTab('ml-insights'); setIsSidebarOpen(false); }}
           >
-            <Brain size={18} style={{ marginRight: '0.8rem' }} /> ML Insights
+            <Brain size={18} style={{ marginRight: '0.8rem' }} /> AI Insights
           </button>
         </nav>
 
@@ -667,7 +667,7 @@ export default function AdminDashboard() {
           </div>
         ) : activeTab === 'add-marks' ? (
           <div className="animate-fade-in">
-            <ManualUpload subject={subject} onUploadSuccess={() => { fetchDashboard(); setActiveTab('marks'); }} />
+            <ManualUpload subject={subject} onUploadSuccess={() => { fetchDashboard(); }} />
           </div>
         ) : activeTab === 'ml-insights' ? (
           <div className="animate-fade-in">

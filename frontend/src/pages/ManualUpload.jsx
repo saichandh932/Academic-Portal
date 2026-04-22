@@ -319,7 +319,7 @@ export default function ManualUpload({ subject, onUploadSuccess }) {
 
       const res = await axios.post("/api/db/marks/upload", payload);
       setMessage(res.data.message);
-      setTimeout(() => setShowGrid(false), 2000);
+      setIsLocked(true);
       if (onUploadSuccess) onUploadSuccess();
     } catch (err) {
       setError(err.response?.data?.error || "Connection error to Gradebook API.");
