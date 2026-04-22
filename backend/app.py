@@ -17,6 +17,7 @@ from backend.routes.db_students   import db_bp
 from backend.routes.attendance    import attendance_bp
 from backend.routes.dashboard     import dashboard_bp
 from backend.routes.notifications import notifications_bp
+from backend.routes.syllabus      import syllabus_bp
 
 
 def create_app() -> Flask:
@@ -85,6 +86,7 @@ def create_app() -> Flask:
     app.register_blueprint(attendance_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(syllabus_bp)
 
     # ── Root index & API Discovery ────────────────────────────────────────────
     @app.route("/api", methods=["GET"])

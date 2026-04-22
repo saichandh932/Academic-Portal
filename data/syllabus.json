@@ -1,0 +1,53 @@
+{
+  "QALR": {
+    "name": "Quantitative Aptitude and Logical Reasoning",
+    "topics": [
+      "Number system", "LCM & HCF", "Percentage", "Ratio and proportion",
+      "Profit, loss and discount", "Average & Mixtures", "Simple & Compound interest",
+      "Time and work", "Time & distance", "Problems on trains", "Problems on ages",
+      "Permutation & Combinations", "Probability",
+      "Number series", "Letter series", "Analogy", "Odd man out", "Coding and decoding",
+      "Syllogisms", "Puzzle test",
+      "Blood relations", "Direction sense test", "Order & Ranking", "Seating Arrangements",
+      "Calendar & Clocks"
+    ]
+  },
+  "CNS": {
+    "name": "Cryptography and Network Security",
+    "topics": [
+      "Computer Security Concepts", "Security Attacks and Services", "Classical Encryption Techniques",
+      "Symmetric Ciphers (DES, AES, RC4)", "Asymmetric Ciphers (RSA, Diffie-Hellman)",
+      "Cryptographic Hash Functions and MACs", "Kerberos and X.509 Authentication",
+      "E-Mail Security (PGP, S/MIME)", "IP Security Architecture",
+      "Web Security (SSL/TLS, HTTPS, SSH)", "System Security (Intruders, Firewalls)"
+    ]
+  },
+  "PADCOM": {
+    "name": "Parallel and Distributed Computing",
+    "topics": [
+      "Introduction to Parallel Computing", "Parallel Architecture", "Memory Issues and NUMA",
+      "Parallel Algorithm Design Principles", "Task-Based & Data Parallel Decomposition",
+      "Introduction to Distributed Systems", "Distributed Computing and Communication",
+      "Parallel and Distributed Programming Frameworks (CUDA, OpenMP, Hadoop)"
+    ]
+  },
+  "SE": {
+    "name": "Software Engineering",
+    "topics": [
+      "Introduction to Software Engineering", "Process Models (Agile, Scrum)",
+      "Requirements Engineering", "Building the Analysis Model", "Design Engineering",
+      "User Interface Design", "Testing Strategies (Unit, Integration, System)",
+      "Testing Tactics (Black-Box, White-Box)", "Risk Management", "Quality Management and CASE Tools"
+    ]
+  },
+  "ML": {
+    "name": "Machine Learning",
+    "topics": [
+      "Introduction to Machine Learning", "Model Training Essentials",
+      "Cross Validation and Evaluation Measures", "Linear and Logistic Regression",
+      "Feature Selection Strategies", "Dimensionality Reduction (PCA, SVD)",
+      "Classification (KNN, SVM, Decision Trees, Naïve Bayes)", "Ensemble Methods (Random Forest, Bagging, Boosting)",
+      "Clustering (K-means, DBSCAN, Hierarchical)"
+    ]
+  }
+}

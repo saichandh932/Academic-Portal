@@ -2,21 +2,144 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  Users, 
-  BookOpen, 
-  GraduationCap, 
-  ClipboardList, 
-  Activity, 
-  LogOut, 
-  User, 
-  Calendar,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-  Printer,
-  ChevronRight
+  Users, BookOpen, GraduationCap, ClipboardList, Activity,
+  LogOut, User, Calendar, CheckCircle2, AlertCircle,
+  FileText, Printer, ChevronRight, Brain, Award, ShieldAlert
 } from 'lucide-react';
+import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
 import Loader from '../components/Loader';
+
+// ── ML Panel for Parent Dashboard ────────────────────────────────────────────
+function MLParentPanel({ studentId }) {
+  const [pred, setPred]   = useState(null);
+  const [grade, setGrade] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.allSettled([
+      axios.get(`/api/predict/student/${studentId}`),
+      axios.get(`/api/predict/grade/${studentId}`),
+    ]).then(([predRes, gradeRes]) => {
+      if (predRes.status === 'fulfilled' && predRes.value.data.success) setPred(predRes.value.data);
+      if (gradeRes.status === 'fulfilled' && gradeRes.value.data.success) setGrade(gradeRes.value.data);
+    }).finally(() => setLoading(false));
+  }, [studentId]);
+
+  if (loading) return (
+    <div style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>
+      <Brain size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+      <p style={{ fontSize: '0.9rem', margin: 0 }}>Running AI analysis…</p>
+    </div>
+  );
+
+  if (!pred && !grade) return null;
+
+  const PERF_COLORS = { High: '#22c55e', Medium: '#f59e0b', Low: '#ef4444' };
+  const predColor = PERF_COLORS[pred?.prediction] || '#94a3b8';
+  const gradeColors = { S: '#22c55e', A: '#16a34a', B: '#3b82f6', C: '#f59e0b', D: '#f97316', E: '#ef4444', F: '#dc2626' };
+  const gradeColor = gradeColors[grade?.grade_letter] || '#94a3b8';
+
+  return (
+    <section style={{ marginBottom: '3rem' }}>
+      <div className="glass-panel" style={{ padding: 0, background: 'var(--surface-solid)', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #eee', background: 'linear-gradient(135deg, rgba(76,114,176,0.07) 0%, rgba(85,168,104,0.05) 100%)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Brain size={22} color="#4C72B0" />
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800' }}>AI Academic Analysis</h2>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>Machine Learning predictions based on live attendance & marks data</p>
+          </div>
+        </div>
+
+        <div style={{ padding: '1.5rem 2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+
+          {/* Performance Classification */}
+          {pred && (
+            <div style={{ padding: '1.25rem', borderRadius: '0.9rem', background: `${predColor}10`, border: `1px solid ${predColor}30` }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>ML Performance Class</div>
+              <div style={{ fontSize: '2rem', fontWeight: '900', color: predColor }}>{pred.prediction}</div>
+              <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.25rem' }}>Confidence: {Math.round((pred.confidence || 0) * 100)}%</div>
+              {/* Prob bars */}
+              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {pred.probabilities && Object.entries(pred.probabilities).map(([cls, prob]) => (
+                  <div key={cls}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', marginBottom: '0.15rem' }}>
+                      <span style={{ color: PERF_COLORS[cls], fontWeight: '700' }}>{cls}</span>
+                      <span>{Math.round(prob * 100)}%</span>
+                    </div>
+                    <div style={{ height: '4px', borderRadius: '99px', background: 'rgba(0,0,0,0.06)' }}>
+                      <div style={{ height: '100%', borderRadius: '99px', width: `${prob * 100}%`, background: PERF_COLORS[cls] }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Predicted Grade */}
+          {grade && (
+            <div style={{ padding: '1.25rem', borderRadius: '0.9rem', background: `${gradeColor}10`, border: `1px solid ${gradeColor}30` }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>
+                <Award size={12} style={{ display: 'inline', marginRight: '0.3rem' }} />Predicted Grade
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '0.8rem', background: `${gradeColor}20`, border: `2px solid ${gradeColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '1.8rem', fontWeight: '900', color: gradeColor }}>{grade.grade_letter}</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '900' }}>{grade.expected_percentage}%</div>
+                  <div style={{ fontSize: '0.8rem', color: '#888' }}>GPA: <b style={{ color: gradeColor }}>{grade.grade_points}/10</b></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* At-Risk Score */}
+          {grade && (
+            <div style={{ padding: '1.25rem', borderRadius: '0.9rem', background: `${grade.risk_color}08`, border: `1px solid ${grade.risk_color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.5rem' }}>
+                <ShieldAlert size={12} style={{ display: 'inline', marginRight: '0.3rem' }} />At-Risk Score
+              </div>
+              <div style={{ position: 'relative', width: '130px', height: '80px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadialBarChart cx="50%" cy="90%" innerRadius="70%" outerRadius="100%"
+                    startAngle={180} endAngle={0}
+                    data={[{ value: grade.risk_score, fill: grade.risk_color }, { value: 100 - grade.risk_score, fill: 'rgba(0,0,0,0.05)' }]}>
+                    <RadialBar dataKey="value" cornerRadius={5} background={false} />
+                  </RadialBarChart>
+                </ResponsiveContainer>
+                <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '900', color: grade.risk_color, lineHeight: 1 }}>{grade.risk_score}</div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: '800', color: grade.risk_color, textTransform: 'uppercase' }}>{grade.risk_level}</div>
+                </div>
+              </div>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#888', textAlign: 'center' }}>
+                {grade.risk_level === 'safe' && 'Student is performing well.'}
+                {grade.risk_level === 'moderate' && 'Some areas need improvement.'}
+                {grade.risk_level === 'high' && 'Parental support recommended.'}
+                {grade.risk_level === 'critical' && 'Urgent academic intervention needed.'}
+              </p>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {pred?.explanation?.recommendations?.length > 0 && (
+            <div style={{ padding: '1.25rem', borderRadius: '0.9rem', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>💡 AI Recommendations</div>
+              <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+                {pred.explanation.recommendations.slice(0, 3).map((r, i) => (
+                  <li key={i} style={{ fontSize: '0.8rem', color: '#78350f', marginBottom: '0.4rem', lineHeight: 1.4 }}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 
 export default function ParentDashboard() {
   const { id } = useParams();
@@ -245,6 +368,9 @@ export default function ParentDashboard() {
             </div>
           </div>
         </section>
+
+        {/* 2. AI ML PANEL */}
+        <MLParentPanel studentId={id} />
 
         <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(300px, 100%, 450px), 1fr))' }}>
           

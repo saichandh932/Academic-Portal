@@ -146,10 +146,19 @@ class StudentMarksModel:
         })
 
     @staticmethod
-    def insert_mark(registration_number: str, subject_name: str, assessment_name: str, marks_obtained: float, max_marks: float) -> int:
+    def insert_mark(registration_number: str, subject_name: str, assessment_name: str, marks_obtained: float, max_marks: float, topics: list = None) -> int:
         percentage = (marks_obtained / max_marks) * 100 if max_marks > 0 else 0
         status = "Low" if percentage < 40 else "Good"
         now = datetime.now()
+
+        set_data = {
+            "marks_obtained": marks_obtained,
+            "max_marks": max_marks,
+            "performance_status": status,
+            "updated_at": now
+        }
+        if topics is not None:
+            set_data["topics"] = topics
 
         db = get_db()
         db[StudentMarksModel.COL].update_one(
@@ -158,12 +167,7 @@ class StudentMarksModel:
                 "subject_name": subject_name,
                 "assessment_name": assessment_name
             },
-            {"$set": {
-                "marks_obtained": marks_obtained,
-                "max_marks": max_marks,
-                "performance_status": status,
-                "updated_at": now
-            },
+            {"$set": set_data,
             "$setOnInsert": {
                 "created_at": now
             }},

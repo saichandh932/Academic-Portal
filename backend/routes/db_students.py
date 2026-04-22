@@ -206,6 +206,7 @@ def upload_marks():
     assessment_name = data.get("assessment_name")
     max_marks = float(data.get("max_marks", 100))
     grades = data.get("grades", [])
+    topics = data.get("topics", [])  # NEW: list of syllabus topics covered in this assessment
 
     if not subject_name or not assessment_name or not grades:
         return jsonify({"success": False, "error": "Missing required gradebook fields."}), 400
@@ -229,11 +230,55 @@ def upload_marks():
                 subject_name=subject_name,
                 assessment_name=assessment_name,
                 marks_obtained=marks,
-                max_marks=max_marks
+                max_marks=max_marks,
+                topics=topics
             )
             inserted += 1
 
-        return jsonify({"success": True, "message": f"Successfully recorded {inserted} marks."}), 201
+        # ── ML Re-Prediction for all affected students ────────────────────────
+        repredicted = 0
+        try:
+            from backend.services.feature_extractor import extract_features
+            from backend.ml_model import ModelStore
+            from database.models.prediction_log import PredictionLogModel
+
+            affected_reg_nums = list({g["registration_number"] for g in grades})
+            for reg_num in affected_reg_nums:
+                live_features, _ = extract_features(reg_num)
+                res = ModelStore.predict(live_features)
+
+                # Update student performance label in DB
+                from database.db import get_db as _get_db
+                from datetime import datetime as _dt
+                _get_db()["students"].update_one(
+                    {"registration_number": reg_num},
+                    {"$set": {
+                        "performance":    res["prediction"],
+                        "internal_marks": round(live_features["internal_marks"], 2),
+                        "attendance":     round(live_features["attendance"], 2),
+                        "updated_at":     _dt.now(),
+                    }}
+                )
+                # Log the prediction
+                PredictionLogModel.log(
+                    **live_features,
+                    prediction   = res["prediction"],
+                    confidence   = res["confidence"],
+                    prob_high    = res["probabilities"].get("High",   0),
+                    prob_medium  = res["probabilities"].get("Medium", 0),
+                    prob_low     = res["probabilities"].get("Low",    0),
+                    student_id   = reg_num,
+                    request_type = "marks_upload",
+                )
+                repredicted += 1
+        except Exception:
+            pass  # Re-prediction must never break the marks upload
+
+        return jsonify({
+            "success":     True,
+            "message":     f"Successfully recorded {inserted} marks.",
+            "repredicted": repredicted,
+        }), 201
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 500
 

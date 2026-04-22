@@ -1,11 +1,163 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Users, RefreshCcw, LayoutDashboard, ClipboardCheck, LogOut, Activity, AlertTriangle, Search, ChevronDown, ChevronRight, Lock, Mail, ShieldCheck, ClipboardList, Menu, X } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Users, RefreshCcw, LayoutDashboard, ClipboardCheck, LogOut, Activity, AlertTriangle, Search, ChevronDown, ChevronRight, Lock, Mail, ShieldCheck, ClipboardList, Menu, X, Brain } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import ManualUpload from './ManualUpload';
 import AttendanceUpload from './AttendanceUpload';
 import Loader from '../components/Loader';
+
+// ── ML Insights Tab ──────────────────────────────────────────────────────────
+function MLInsightsTab() {
+  const [modelInfo, setModelInfo]       = useState(null);
+  const [comparison, setComparison]     = useState(null);
+  const [importance, setImportance]     = useState(null);
+  const [evalImg, setEvalImg]           = useState(null);
+  const [retraining, setRetraining]     = useState(false);
+  const [retrainResult, setRetrainResult] = useState(null);
+
+  useEffect(() => {
+    axios.get('/api/model/info').then(r => setModelInfo(r.data)).catch(() => {});
+    axios.get('/api/model/comparison').then(r => setComparison(r.data)).catch(() => {});
+    axios.get('/api/model/feature-importance').then(r => setImportance(r.data)).catch(() => {});
+    axios.get('/api/model/evaluation?format=base64').then(r => {
+      if (r.data.success) setEvalImg(r.data.image_b64);
+    }).catch(() => {});
+  }, []);
+
+  const handleRetrain = async () => {
+    if (!window.confirm('Retrain the ML model on current data? This may take 30–60 seconds.')) return;
+    setRetraining(true);
+    setRetrainResult(null);
+    try {
+      const r = await axios.post('/api/model/retrain');
+      setRetrainResult({ success: true, metrics: r.data.metrics });
+      // Reload info after retrain
+      axios.get('/api/model/info').then(r2 => setModelInfo(r2.data)).catch(() => {});
+      axios.get('/api/model/comparison').then(r2 => setComparison(r2.data)).catch(() => {});
+      axios.get('/api/model/feature-importance').then(r2 => setImportance(r2.data)).catch(() => {});
+      axios.get('/api/model/evaluation?format=base64').then(r2 => { if (r2.data.success) setEvalImg(r2.data.image_b64); }).catch(() => {});
+    } catch (e) {
+      setRetrainResult({ success: false, error: e.response?.data?.error || e.message });
+    } finally {
+      setRetraining(false);
+    }
+  };
+
+  const MODEL_COLORS = ['#4C72B0','#55A868','#C44E52','#8172B2'];
+
+  return (
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="glass-panel" style={{ padding: '1.5rem 2rem', marginBottom: '1.5rem', background: 'linear-gradient(135deg,rgba(76,114,176,0.08) 0%,rgba(85,168,104,0.06) 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Brain size={28} color="#4C72B0" />
+          <div>
+            <h2 className="font-bold" style={{ margin: 0 }}>ML Model Insights</h2>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {modelInfo ? `Active: ${modelInfo.best_model_name || modelInfo.model_type} — CV Accuracy: ${modelInfo.best_cv_acc ?? '—'}%` : 'Loading model info...'}
+            </p>
+          </div>
+        </div>
+        <button className="btn btn-primary" onClick={handleRetrain} disabled={retraining} style={{ width: 'auto' }}>
+          <RefreshCcw size={16} style={{ marginRight: '0.5rem' }} />
+          {retraining ? 'Retraining…' : 'Retrain Model'}
+        </button>
+      </div>
+
+      {retrainResult && (
+        <div className="glass-panel" style={{ padding: '1rem 1.5rem', marginBottom: '1.5rem', borderLeft: `4px solid ${retrainResult.success ? 'var(--success)' : 'var(--danger)'}`, background: 'var(--surface-solid)' }}>
+          {retrainResult.success
+            ? <p style={{ margin: 0 }}>✅ Model retrained! Train: <b>{retrainResult.metrics?.train_accuracy}</b> | Test: <b>{retrainResult.metrics?.test_accuracy}</b> | CV: <b>{retrainResult.metrics?.cv_accuracy}</b></p>
+            : <p style={{ margin: 0, color: 'var(--danger)' }}>❌ Retrain failed: {retrainResult.error}</p>
+          }
+        </div>
+      )}
+
+      {/* Model Comparison Table */}
+      {comparison?.models && (
+        <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h3 className="font-bold" style={{ margin: 0 }}>📊 Model Comparison</h3>
+            <span className="badge" style={{ background: '#4C72B0', color: 'white', fontSize: '0.7rem' }}>Best: {comparison.best_model}</span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-muted)' }}>
+                <tr>{['Model','Train Acc','Test Acc','CV Mean','CV Std','F1 (W)'].map(h => <th key={h} style={{ padding: '0.8rem 1rem', fontSize: '0.8rem' }}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {Object.entries(comparison.models).map(([name, m], i) => (
+                  <tr key={name} style={{ borderBottom: '1px solid var(--border-color)', background: name === comparison.best_model ? 'rgba(85,168,104,0.06)' : 'transparent' }}>
+                    <td style={{ padding: '0.8rem 1rem', fontWeight: '700' }}>
+                      {name === comparison.best_model && '🏆 '}{name}
+                    </td>
+                    <td style={{ padding: '0.8rem 1rem' }}>{m.train_accuracy}%</td>
+                    <td style={{ padding: '0.8rem 1rem' }}>{m.test_accuracy}%</td>
+                    <td style={{ padding: '0.8rem 1rem', fontWeight: '700', color: '#4C72B0' }}>{m.cv_mean}%</td>
+                    <td style={{ padding: '0.8rem 1rem', color: 'var(--text-muted)' }}>±{m.cv_std}%</td>
+                    <td style={{ padding: '0.8rem 1rem' }}>{m.f1_weighted}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Bar chart */}
+          {Object.keys(comparison.models).length > 0 && (
+            <div style={{ padding: '1.5rem' }}>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={Object.entries(comparison.models).map(([name, m]) => ({ name: name.split(' ')[0], 'Test Acc': m.test_accuracy, 'CV Mean': m.cv_mean, 'F1': m.f1_weighted }))} barSize={18}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis domain={[0, 105]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={v => `${v}%`} />
+                  <Legend />
+                  <Bar dataKey="Test Acc" fill="#4C72B0" radius={[4,4,0,0]} />
+                  <Bar dataKey="CV Mean" fill="#55A868" radius={[4,4,0,0]} />
+                  <Bar dataKey="F1" fill="#C44E52" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Feature Importance */}
+      {importance?.features && (
+        <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+            <h3 className="font-bold" style={{ margin: 0 }}>🎯 Feature Importance ({importance.importance_type === 'feature_importance' ? 'Tree-based' : 'Coefficient weight'})</h3>
+          </div>
+          <div style={{ padding: '1.5rem' }}>
+            {importance.features.map((f, i) => (
+              <div key={f.feature} style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
+                  <span style={{ fontWeight: '700' }}>{f.feature.replace('_', ' ')}</span>
+                  <span style={{ fontWeight: '800', color: MODEL_COLORS[i % 4] }}>{f.importance_pct}%</span>
+                </div>
+                <div style={{ height: '8px', borderRadius: '99px', background: 'rgba(0,0,0,0.07)' }}>
+                  <div style={{ height: '100%', borderRadius: '99px', width: `${f.importance_pct}%`, background: MODEL_COLORS[i % 4], transition: 'width 0.8s ease' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Evaluation Image */}
+      {evalImg && (
+        <div className="glass-panel" style={{ overflow: 'hidden', background: 'var(--surface-solid)', marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+            <h3 className="font-bold" style={{ margin: 0 }}>📈 Model Evaluation Charts</h3>
+          </div>
+          <div style={{ padding: '1rem' }}>
+            <img src={`data:image/png;base64,${evalImg}`} alt="Model Evaluation" style={{ width: '100%', borderRadius: '0.5rem' }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
@@ -174,18 +326,19 @@ export default function AdminDashboard() {
 
           <button
             className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-outline'}`}
-            style={{
-              justifyContent: 'flex-start',
-              border: activeTab === 'attendance' ? 'none' : '1px solid rgba(255,255,255,0.1)',
-              color: 'white',
-              background: activeTab === 'attendance' ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
-              padding: '0.8rem 1.2rem'
-            }}
+            style={{ justifyContent: 'flex-start', border: activeTab === 'attendance' ? 'none' : '1px solid rgba(255,255,255,0.1)', color: 'white', background: activeTab === 'attendance' ? 'var(--primary)' : 'rgba(255,255,255,0.02)', padding: '0.8rem 1.2rem' }}
             onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }}
           >
             <ClipboardCheck size={18} style={{ marginRight: '0.8rem' }} /> Attendance Registry
           </button>
 
+          <button
+            className={`btn ${activeTab === 'ml-insights' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ justifyContent: 'flex-start', border: activeTab === 'ml-insights' ? 'none' : '1px solid rgba(255,255,255,0.1)', color: 'white', background: activeTab === 'ml-insights' ? 'var(--primary)' : 'rgba(255,255,255,0.02)', padding: '0.8rem 1.2rem', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}
+            onClick={() => { setActiveTab('ml-insights'); setIsSidebarOpen(false); }}
+          >
+            <Brain size={18} style={{ marginRight: '0.8rem' }} /> ML Insights
+          </button>
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
@@ -217,7 +370,9 @@ export default function AdminDashboard() {
               <h1 className="font-bold text-xl" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '0.2rem' }}>{subject}</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.2rem)' }}>
                 {activeTab === 'marks' ? 'CLASS PERFORMANCE OVERVIEW' :
-                  activeTab === 'add-marks' ? 'ENTER STUDENT SCORES' : 'MANAGE DAILY ATTENDANCE'}
+                  activeTab === 'add-marks' ? 'ENTER STUDENT SCORES' :
+                  activeTab === 'ml-insights' ? 'AI MODEL TRANSPARENCY' :
+                  'MANAGE DAILY ATTENDANCE'}
               </p>
             </div>
           </div>
@@ -429,6 +584,8 @@ export default function AdminDashboard() {
           <div className="animate-fade-in">
             <ManualUpload subject={subject} onUploadSuccess={() => { fetchDashboard(); setActiveTab('marks'); }} />
           </div>
+        ) : activeTab === 'ml-insights' ? (
+          <MLInsightsTab />
         ) : (
           <div className="animate-fade-in">
             <AttendanceUpload subject={subject} onUploadSuccess={() => { fetchAttendance(); setActiveTab('marks'); }} />

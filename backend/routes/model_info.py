@@ -4,9 +4,11 @@ backend/routes/model_info.py
 -----------------------------
 Model metadata and management endpoints:
 
-  GET  /api/model/info          - model metadata + feature list
+  GET  /api/model/info          - model metadata + feature list + best model name
   GET  /api/model/evaluation    - serve the evaluation PNG
   GET  /api/model/coefficients  - log-odds coefficients per class
+  GET  /api/model/comparison    - multi-model comparison report
+  GET  /api/model/feature-importance - feature importance for admin UI
   POST /api/model/retrain       - retrain the model on current CSV data
   GET  /api/health              - health-check
 """
@@ -37,17 +39,41 @@ def model_info():
     m  = ModelStore.model()
     le = ModelStore.encoder()
 
-    return jsonify({
-        "success":      True,
-        "model_type":   type(m).__name__,
-        "solver":       m.solver,
-        "max_iter":     m.max_iter,
-        "C":            m.C,
-        "classes":      list(le.classes_),
-        "feature_cols": Config.FEATURE_COLS,
-        "num_features": len(Config.FEATURE_COLS),
-        "iterations_run": int(m.n_iter_[0]),
-    }), 200
+    # Try to load comparison report for best model name
+    best_model_name = type(m).__name__
+    best_cv_acc     = None
+    comparison_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "model", "model_comparison.json"
+    )
+    if os.path.exists(comparison_path):
+        try:
+            import json
+            with open(comparison_path, encoding="utf-8") as f:
+                cmp = json.load(f)
+            best_model_name = cmp.get("best_model", best_model_name)
+            best_cv_acc     = cmp.get("best_cv_acc")
+        except Exception:
+            pass
+
+    info = {
+        "success":         True,
+        "model_type":      type(m).__name__,
+        "best_model_name": best_model_name,
+        "best_cv_acc":     best_cv_acc,
+        "classes":         list(le.classes_),
+        "feature_cols":    Config.FEATURE_COLS,
+        "num_features":    len(Config.FEATURE_COLS),
+    }
+    # Model-type specific metadata
+    if hasattr(m, "solver"):
+        info["solver"]        = m.solver
+        info["max_iter"]      = m.max_iter
+        info["C"]             = m.C
+        info["iterations_run"]= int(m.n_iter_[0])
+    if hasattr(m, "n_estimators"):
+        info["n_estimators"]  = m.n_estimators
+    return jsonify(info), 200
 
 
 # ── Log-odds coefficients ──────────────────────────────────────────────────────
@@ -75,6 +101,69 @@ def coefficients():
         "features":    Config.FEATURE_COLS,
         "coefficients": coef_dict,
         "intercepts":   intercept_dict,
+    }), 200
+
+
+# ── Multi-model comparison report ─────────────────────────────────────────────
+@model_bp.route("/model/comparison", methods=["GET"])
+def model_comparison():
+    """GET /api/model/comparison — returns the JSON comparison of all trained models."""
+    comparison_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "model", "model_comparison.json"
+    )
+    if not os.path.exists(comparison_path):
+        return jsonify({
+            "success": False,
+            "error": "Comparison report not found. Retrain the model first."
+        }), 404
+    try:
+        import json
+        with open(comparison_path, encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify({"success": True, **data}), 200
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# ── Feature importance ─────────────────────────────────────────────────────────
+@model_bp.route("/model/feature-importance", methods=["GET"])
+def feature_importance():
+    """
+    GET /api/model/feature-importance
+    Returns feature importance (or mean |coefficient|) for the loaded model.
+    """
+    import numpy as np
+    m    = ModelStore.model()
+    cols = Config.FEATURE_COLS
+
+    if hasattr(m, "feature_importances_"):
+        raw      = m.feature_importances_
+        total    = raw.sum() or 1
+        imp_type = "feature_importance"
+    elif hasattr(m, "coef_"):
+        raw      = np.abs(m.coef_).mean(axis=0)
+        total    = raw.sum() or 1
+        imp_type = "mean_abs_coefficient"
+    else:
+        return jsonify({"success": False, "error": "Model has no importance info."}), 400
+
+    importance_list = sorted(
+        [
+            {
+                "feature": col,
+                "importance": round(float(v), 6),
+                "importance_pct": round(float(v) / total * 100, 2),
+            }
+            for col, v in zip(cols, raw)
+        ],
+        key=lambda x: -x["importance"]
+    )
+    return jsonify({
+        "success":         True,
+        "importance_type": imp_type,
+        "model_type":      type(m).__name__,
+        "features":        importance_list,
     }), 200
 
 
